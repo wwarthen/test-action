@@ -9612,6 +9612,173 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 531:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Github = void 0;
+const github = __importStar(__nccwpck_require__(6366));
+const core = __importStar(__nccwpck_require__(8864));
+const Input_1 = __nccwpck_require__(9696);
+class Github {
+    constructor() {
+        this.octokit = github.getOctokit(Input_1.Input.Github.TOKEN).rest;
+    }
+    listRelease() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return (yield this.octokit.repos.listReleases(Input_1.Input.Github.REPO)).data;
+        });
+    }
+    dropRelease(release, dropTag) {
+        return __awaiter(this, void 0, void 0, function* () {
+            for (const asset of release.assets) {
+                yield this.octokit.repos.deleteReleaseAsset(Object.assign(Input_1.Input.Github.REPO, { asset_id: asset.id }));
+                core.debug(`drop release assets: [${release.name}] ${asset.name}`);
+            }
+            core.debug(`drop release: ${release.name}`);
+            yield this.octokit.repos.deleteRelease(Object.assign(Input_1.Input.Github.REPO, { release_id: release.id }));
+            if (!dropTag)
+                return;
+            core.debug(`drop tag: ${release.tag_name}`);
+            yield this.octokit.git.deleteRef(Object.assign(Input_1.Input.Github.REPO, { ref: `tags/${release.tag_name}` }));
+            core.info(`release dropped: ${release.name}`);
+        });
+    }
+    static getInstance() {
+        if (this.instance == null) {
+            this.instance = new Github();
+        }
+        return this.instance;
+    }
+}
+exports.Github = Github;
+Github.instance = null;
+
+
+/***/ }),
+
+/***/ 9696:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Input = void 0;
+const core = __importStar(__nccwpck_require__(8864));
+const github = __importStar(__nccwpck_require__(6366));
+class Input {
+}
+exports.Input = Input;
+Input.Github = class {
+    static get TOKEN() {
+        const githubToken = process.env.GITHUB_TOKEN;
+        if (githubToken == undefined) {
+            core.error("No GITHUB_TOKEN found. pass `GITHUB_TOKEN` as env!");
+            process.exit(1);
+            return '';
+        }
+        return githubToken;
+    }
+    static get REPO() {
+        const repo = core.getInput("repo");
+        if (repo == "") {
+            return github.context.repo;
+        }
+        const split = repo.split("/");
+        return {
+            owner: split[0],
+            repo: split[1],
+        };
+    }
+};
+Input.Release = class {
+    static get DROP() {
+        return core.getBooleanInput("release-drop");
+    }
+    static get KEEP_COUNT() {
+        return Number(core.getInput("release-keep-count"));
+    }
+    static get DROP_TAG() {
+        return core.getBooleanInput("release-drop-tag");
+    }
+};
+Input.PreRelease = class {
+    static get DROP() {
+        return core.getBooleanInput("pre-release-drop");
+    }
+    static get KEEP_COUNT() {
+        return Number(core.getInput("pre-release-keep-count"));
+    }
+    static get DROP_TAG() {
+        return core.getBooleanInput("pre-release-drop-tag");
+    }
+};
+Input.Draft = class {
+    static get DROP() {
+        return core.getBooleanInput("draft-drop");
+    }
+};
+
+
+/***/ }),
+
 /***/ 1756:
 /***/ ((module) => {
 
@@ -9781,29 +9948,135 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__nccwpck_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__nccwpck_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__nccwpck_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__nccwpck_require__.o(definition, key) && !__nccwpck_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__nccwpck_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__nccwpck_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	if (typeof __nccwpck_require__ !== 'undefined') __nccwpck_require__.ab = __dirname + "/";
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be isolated against other modules in the chunk.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 (() => {
-const core = __nccwpck_require__(8864);
-const github = __nccwpck_require__(6366);
+"use strict";
+__nccwpck_require__.r(__webpack_exports__);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0__ = __nccwpck_require__(8864);
+/* harmony import */ var _actions_core__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nccwpck_require__.n(_actions_core__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _core_Github__WEBPACK_IMPORTED_MODULE_1__ = __nccwpck_require__(531);
+/* harmony import */ var _core_Github__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nccwpck_require__.n(_core_Github__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _core_Input__WEBPACK_IMPORTED_MODULE_2__ = __nccwpck_require__(9696);
+/* harmony import */ var _core_Input__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nccwpck_require__.n(_core_Input__WEBPACK_IMPORTED_MODULE_2__);
 
-try {
-  // `who-to-greet` input defined in action metadata file
-  const nameToGreet = core.getInput('who-to-greet');
-  console.log(`Hello ${nameToGreet}!`);
-  const time = (new Date()).toTimeString();
-  core.setOutput("time", time);
-  // Get the JSON webhook payload for the event that triggered the workflow
-  const payload = JSON.stringify(github.context.payload, undefined, 2)
-  console.log(`The event payload: ${payload}`);
-} catch (error) {
-  core.setFailed(error.message);
+
+
+
+async function run() {
+    const release = await _core_Github__WEBPACK_IMPORTED_MODULE_1__.Github.getInstance().listRelease();
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.debug(`release list data: \n${release}`)
+    if (release.length <= 0) {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`No release found, action finish!`);
+        return;
+    }
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Release total count: ${release.length}`);
+
+    if (_core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.Release.DROP) {
+        // const releases = release.filter((release: any) => release.prerelease);
+        const releases = release.filter((release) => !release.prerelease);
+        if (releases.length > 0) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Find release count: ${releases.length}`);
+            await dropRelease(releases, _core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.Release.KEEP_COUNT + 1, _core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.Release.DROP_TAG);
+        } else {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`No release found, skip action.`);
+        }
+    } else {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Skip drop release.`);
+    }
+
+    if (_core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.PreRelease.DROP) {
+        const prereleases = release.filter((release) => release.prerelease);
+        if (prereleases.length > 0) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Find pre-release count: ${prereleases.length}`);
+            await dropRelease(prereleases, _core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.PreRelease.KEEP_COUNT + 1, _core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.PreRelease.DROP_TAG);
+        } else {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`No pre-release found, skip action.`);
+        }
+    } else {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Skip drop pre-release.`);
+    }
+
+
+    if (_core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.Draft.DROP) {
+        const draft = (await _core_Github__WEBPACK_IMPORTED_MODULE_1__.Github.getInstance().listRelease())
+            .filter((release) => release.draft);
+        if (draft.length > 0) {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Find draft count: ${draft.length}`);
+            await dropRelease(draft, 0, false);
+        } else {
+            _actions_core__WEBPACK_IMPORTED_MODULE_0__.warning(`No draft found, skip action.`);
+        }
+    } else {
+        _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Skip drop draft.`);
+    }
+
+    _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`All task finished!`);
 }
+
+async function dropRelease(releases, keep, dropTag) {
+    const sorted = releases.sort(
+        function (rA, rB) {
+            if (rB.published_at != null && rA.published_at){
+                return rB.published_at.localeCompare(rA.published_at);
+            } else {
+                return rB.name.localeCompare(rA.name);
+            }
+        },
+    )
+    const github = _core_Github__WEBPACK_IMPORTED_MODULE_1__.Github.getInstance();
+    for (let i = keep; i < sorted.length; i++) {
+        await github.dropRelease(sorted[i], dropTag);
+    }
+}
+
+run();
+
 })();
 
 module.exports = __webpack_exports__;

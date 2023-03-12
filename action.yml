@@ -1,13 +1,44 @@
-name: 'Hello World'
-description: 'Greet someone and record the time'
+name: 'Delete Releases'
+description: 'This action can delete release/pre-release/draft of given repo.'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  repo:
+    description: 'Operation target repository, the format is "owner/repo".'
     required: true
-    default: 'World'
-outputs:
-  time: # id of output
-    description: 'The time we greeted you'
+    default: ''
+
+  release-drop:
+    description: 'Whether to delete the release.'
+    required: true
+    default: 'false'
+  release-keep-count:
+    description: 'The number of releases except the latest release reserved, "-1" means delete all.'
+    required: true
+    default: '0'
+  release-drop-tag:
+    description: 'Whether to delete the tag of release.'
+    required: true
+    default: 'true'
+
+  pre-release-drop:
+    description: 'Whether to delete the pre-release.'
+    required: true
+    default: 'false'
+  pre-release-keep-count:
+    description: 'The number of pre-release except the latest pre-release reserved, "-1" means delete all.'
+    required: true
+    default: '0'
+  pre-release-drop-tag:
+    description: 'Whether to delete the tag of pre-release.'
+    required: true
+    default: 'true'
+
+  draft-drop:
+    description: 'Whether to delete the draft.'
+    required: true
+    default: 'true'
 runs:
   using: 'node16'
   main: 'dist/index.js'
+branding:
+  icon: 'package'
+  color: 'gray-dark'
