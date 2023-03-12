@@ -10019,7 +10019,7 @@ async function run() {
 
     if (_core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.Release.DROP) {
         // const releases = release.filter((release: any) => release.prerelease);
-        const releases = release.filter((release) => !release.prerelease);
+        const releases = release.filter((release) => !(release.prerelease || release.draft));
         if (releases.length > 0) {
             _actions_core__WEBPACK_IMPORTED_MODULE_0__.info(`Find release count: ${releases.length}`);
             await dropRelease(releases, _core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.Release.KEEP_COUNT + 1, _core_Input__WEBPACK_IMPORTED_MODULE_2__.Input.Release.DROP_TAG);

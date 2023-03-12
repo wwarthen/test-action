@@ -13,7 +13,7 @@ async function run() {
 
     if (Input.Release.DROP) {
         // const releases = release.filter((release: any) => release.prerelease);
-        const releases = release.filter((release) => !release.prerelease);
+        const releases = release.filter((release) => !(release.prerelease || release.draft));
         if (releases.length > 0) {
             core.info(`Find release count: ${releases.length}`);
             await dropRelease(releases, Input.Release.KEEP_COUNT + 1, Input.Release.DROP_TAG);
